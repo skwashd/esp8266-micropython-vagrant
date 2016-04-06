@@ -12,17 +12,40 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/wily64"
+
+  # Forward the NodeMCU to the VM. To use this configuration you need to install
+  # the VirtualBox Extension Pack. If you don't want to flash your NodeMCU from
+  # the VM you can comment this section.
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--usb", "on"]
+    vb.customize ["modifyvm", :id, "--usbehci", "on"]
+    vb.customize ['usbfilter', 'add', '0', '--target', :id, '--name', 'QinHeng Electronics USB2.0-Serial', '--product', 'USB2.0-Serial', '--vendorid', '0x1a86', '--productid', '0x7523']
+  end
 
   # Provision script to install dependencies used by the esp-open-sdk and
-  # micropython tools.  First install dependencies as root.
+  # micropython tools.  First install dependencies as root. The rest of the
+  # toolkit is downloaded and built.
   config.vm.provision "shell", privileged: false, inline: <<-SHELL
     echo "Installing esp-open-sdk and micropython dependencies..."
+    export HOME=/home/vagrant
+    sudo adduser vagrant dialout
     sudo apt-get update
-    sudo apt-get install -y build-essential git make unrar-free unzip autoconf automake libtool gcc g++ gperf flex bison texinfo gawk ncurses-dev libexpat-dev python sed libreadline-dev libffi-dev pkg-config
+    sudo apt-get install -y build-essential git make unrar-free unzip autoconf automake libtool-bin gcc g++ gperf flex bison texinfo gawk ncurses-dev libexpat-dev python sed libreadline-dev libffi-dev pkg-config python-pip linux-image-extra-virtual
+    cd $HOME
     echo "Installing esp-open-sdk and micropython source..."
     git clone --recursive https://github.com/pfalcon/esp-open-sdk.git
+    cd esp-open-sdk
+    make STANDALONE=y
+    echo "PATH=$(pwd)/xtensa-lx106-elf/bin:\$HOME/.local/bin:\$PATH" >> ~/.profile
+    cd $HOME
     git clone https://github.com/micropython/micropython.git
+    cd micropython
+    git submodule update --init
+    cd $HOME
+    git clone https://github.com/themadinventor/esptool.git
+    cd esptool
+    python ./setup.py install --user
     echo "Finished provisioning, now run 'vagrant ssh' to enter the virtual machine."
   SHELL
 
