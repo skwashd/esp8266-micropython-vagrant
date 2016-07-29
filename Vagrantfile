@@ -31,7 +31,7 @@ Vagrant.configure(2) do |config|
     export HOME=/home/vagrant
     sudo adduser vagrant dialout
     sudo apt-get update
-    sudo apt-get install -y build-essential git make unrar-free unzip autoconf automake libtool-bin gcc g++ gperf flex bison texinfo gawk ncurses-dev libexpat-dev python sed libreadline-dev libffi-dev pkg-config python-pip linux-image-extra-virtual
+    sudo apt-get install -y make unrar autoconf automake libtool gcc g++ gperf flex bison texinfo gawk ncurses-dev libexpat-dev python-dev python python-serial sed git unzip bash help2man wget bzip2 python-pip libtool-bin linux-image-extra-virtual
     cd $HOME
     echo "Installing esp-open-sdk and micropython source..."
     git clone --recursive https://github.com/pfalcon/esp-open-sdk.git
